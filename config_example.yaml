@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+caiyun:
+  token: xxxxxxxxxxxxxxxxx
+
+feishu:
+  webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxxxxxxxxx"
+
+cities:
+  - name: "北京"
+    lng: 116.4074
+    lat: 39.9042
+
+  - name: "上海"
+    lng: 121.4737
+    lat: 31.2304
+
+mysql:
+  dsn: "xxxxxx:xxxxxxxxxx@tcp(127.0.0.1:3306)/xxxxxx?charset=utf8mb4&parseTime=True&loc=Local"
