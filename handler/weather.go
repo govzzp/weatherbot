@@ -14,7 +14,15 @@ func GetHistory(db *gorm.DB) gin.HandlerFunc {
 		city := c.Query("city")
 
 		var list []model.SimpleWeather
-		db.Where("city = ?", city).Order("date asc").Find(&list)
+
+		query := db.Order("date asc")
+
+		// ✅ 有城市才加条件
+		if city != "" {
+			query = query.Where("city = ?", city)
+		}
+
+		query.Find(&list)
 
 		c.JSON(http.StatusOK, list)
 	}

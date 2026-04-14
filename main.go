@@ -17,10 +17,13 @@ func main() {
 	// 定时任务
 	c := cron.New(cron.WithSeconds())
 
-	c.AddFunc("00 30 07 * * *", func() {
+	_, err := c.AddFunc("00 30 07 * * *", func() {
 
 		service.RunJob(cfg, db)
 	})
+	if err != nil {
+		return
+	}
 
 	c.Start()
 	go service.RunJob(cfg, db)

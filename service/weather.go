@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 	"weather-bot/model"
@@ -32,7 +33,12 @@ func GetWeatherRaw(city string, lng, lat float64, token string) (map[string]inte
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
 
 	var res map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {

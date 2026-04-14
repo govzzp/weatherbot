@@ -5,15 +5,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"weather-bot/model"
 
 	"github.com/goccy/go-json"
 )
 
-func BuildFeishuCard(w SimpleWeather) map[string]interface{} {
+func BuildFeishuCard(w model.SimpleWeather) map[string]interface{} {
 
-	content := fmt.Sprintf(
-		"📅 %s\n\n🌡 **温度**：%.1f℃ ~ %.1f℃\n☁ **天气**：%s\n💧 **湿度**：%d%%\n🌬 **风速**：%.1f km/h",
-		w.Date, w.MinTemp, w.MaxTemp, w.Sky, w.Humidity, w.WindSpeed,
+	header := fmt.Sprintf("🌤 %s · %s", w.City, w.Date)
+
+	mainInfo := fmt.Sprintf(
+		"🌡 **温度**：`%.1f℃ ~ %.1f℃`\n"+
+			"☁ **天气**：**%s**\n"+
+			"💧 **湿度**：%d%%\n"+
+			"🌬 **风速**：%.1f km/h",
+		w.MinTemp, w.MaxTemp, w.Sky, w.Humidity, w.WindSpeed,
+	)
+
+	extraInfo := fmt.Sprintf(
+		"🌈 **体感温度**：%.1f℃\n"+
+			"🌿 **空气质量**：%s (AQI %d)",
+		w.FeelingTemp, w.AQIDesc, w.AQI,
 	)
 
 	return map[string]interface{}{
@@ -22,50 +34,44 @@ func BuildFeishuCard(w SimpleWeather) map[string]interface{} {
 			"header": map[string]interface{}{
 				"title": map[string]string{
 					"tag":     "plain_text",
-					"content": "🌤 每日天气 · " + w.City,
+					"content": header,
 				},
 				"template": "blue",
 			},
 			"elements": []interface{}{
+
+				// 🌟 核心天气
 				map[string]interface{}{
 					"tag": "div",
 					"text": map[string]string{
 						"tag":     "lark_md",
-						"content": content,
+						"content": mainInfo,
 					},
 				},
-				map[string]interface{}{
-					"tag": "hr",
-				},
-				map[string]interface{}{
-					"tag": "div",
-					"fields": []interface{}{
-						map[string]interface{}{
-							"is_short": true,
-							"text": map[string]string{
-								"tag":     "lark_md",
-								"content": fmt.Sprintf("🌈 **体感温度**\n%.1f℃", w.FeelingTemp),
-							},
-						},
-						map[string]interface{}{
-							"is_short": true,
-							"text": map[string]string{
-								"tag":     "lark_md",
-								"content": fmt.Sprintf("🌿 **空气质量**\n%s (AQI %d)", w.AQIDesc, w.AQI),
-							},
-						},
-					},
-				},
-				map[string]interface{}{
-					"tag": "hr",
-				},
+
+				map[string]interface{}{"tag": "hr"},
+
+				// 🌿 辅助信息
 				map[string]interface{}{
 					"tag": "div",
 					"text": map[string]string{
 						"tag":     "lark_md",
-						"content": "📝 **天气提示**\n" + w.Alert,
+						"content": extraInfo,
 					},
 				},
+
+				map[string]interface{}{"tag": "hr"},
+
+				// 📢 天气提示
+				map[string]interface{}{
+					"tag": "div",
+					"text": map[string]string{
+						"tag":     "lark_md",
+						"content": "📢 **天气提示**\n" + w.Alert,
+					},
+				},
+
+				// 🌧 降雨提醒
 				map[string]interface{}{
 					"tag": "div",
 					"text": map[string]string{
@@ -77,7 +83,6 @@ func BuildFeishuCard(w SimpleWeather) map[string]interface{} {
 		},
 	}
 }
-
 func SendFeishu(webhook string, card map[string]interface{}) error {
 
 	jsonData, err := json.Marshal(card)
@@ -92,7 +97,21 @@ func SendFeishu(webhook string, card map[string]interface{}) error {
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
+
 	fmt.Println("飞书返回:", string(body))
+
+	// ✅ 检查 HTTP 状态码
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("飞书请求失败: status=%d", resp.StatusCode)
+	}
+
+	// ✅ 解析返回 JSON
+	var res map[string]interface{}
+	_ = json.Unmarshal(body, &res)
+
+	if code, ok := res["code"].(float64); ok && code != 0 {
+		return fmt.Errorf("飞书错误: %v", res)
+	}
 
 	return nil
 }
