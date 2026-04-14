@@ -94,7 +94,12 @@ func SendFeishu(webhook string, card map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 
 	body, _ := io.ReadAll(resp.Body)
 
