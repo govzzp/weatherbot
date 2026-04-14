@@ -2,28 +2,38 @@ package service
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"weather-bot/config"
+	"weather-bot/model"
+
+	"gorm.io/gorm"
 )
 
 func RunJob(cfg *config.Config, db *gorm.DB) {
 
-	var msgs []string
-
 	for _, c := range cfg.Cities {
 
-		w, msg, err := GetWeather(c.Name, c.Lng, c.Lat, cfg.Caiyun.Token)
+		raw, err := GetWeatherRaw(c.Name, c.Lng, c.Lat, cfg.Caiyun.Token)
 		if err != nil {
-			fmt.Println("error:", err)
+			fmt.Println("API错误:", err)
 			continue
 		}
 
-		db.Where("city=? AND date=?", w.City, w.Date).
-			FirstOrCreate(w)
+		w, err := ParseWeather(c.Name, raw)
+		if err != nil {
+			fmt.Println("解析错误:", err)
+			continue
+		}
 
-		msgs = append(msgs, msg)
-		fmt.Println(msgs)
+		// DB（你原逻辑不动）
+		db.Where("city = ? AND date = ?", w.City, w.Date).
+			Assign(model.SimpleWeather{
+				MinTemp: w.MinTemp,
+				MaxTemp: w.MaxTemp,
+			}).
+			FirstOrCreate(&model.SimpleWeather{})
+
+		// 飞书
+		card := BuildFeishuCard(SimpleWeather(w))
+		SendFeishu(cfg.Feishu.Webhook, card)
 	}
-
-	SendFeishu(cfg.Feishu.Webhook, msgs)
 }
