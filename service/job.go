@@ -24,14 +24,23 @@ func RunJob(cfg *config.Config, db *gorm.DB) {
 			continue
 		}
 
-		// DB（你原逻辑不动）
-		db.Where("city = ? AND date = ?", w.City, w.Date).
-			Assign(model.SimpleWeather{
-				MinTemp: w.MinTemp,
-				MaxTemp: w.MaxTemp,
-			}).
-			FirstOrCreate(&model.SimpleWeather{})
-
+		db.Where(model.SimpleWeather{
+			City: w.City,
+			Date: w.Date,
+		}).FirstOrCreate(&model.SimpleWeather{
+			City:        w.City,
+			Date:        w.Date,
+			MinTemp:     w.MinTemp,
+			MaxTemp:     w.MaxTemp,
+			Sky:         w.Sky,
+			Humidity:    w.Humidity,
+			WindSpeed:   w.WindSpeed,
+			AQI:         w.AQI,
+			AQIDesc:     w.AQIDesc,
+			FeelingTemp: w.FeelingTemp,
+			Alert:       w.Alert,
+			RainHint:    w.RainHint,
+		})
 		// 飞书
 		card := BuildFeishuCard(SimpleWeather(w))
 		SendFeishu(cfg.Feishu.Webhook, card)
