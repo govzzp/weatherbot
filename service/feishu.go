@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 	"weather-bot/model"
 
 	"github.com/goccy/go-json"
@@ -83,6 +84,7 @@ func BuildFeishuCard(w model.SimpleWeather) map[string]interface{} {
 		},
 	}
 }
+
 func SendFeishu(webhook string, card map[string]interface{}) error {
 
 	jsonData, err := json.Marshal(card)
@@ -119,4 +121,11 @@ func SendFeishu(webhook string, card map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+// 增加飞书的限流代码
+func SafeSendFeishu(webhook string, card map[string]interface{}) error {
+	err := SendFeishu(webhook, card)
+	time.Sleep(1 * time.Second)
+	return err
 }

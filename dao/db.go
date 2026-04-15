@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"os"
+	"time"
 	"weather-bot/model"
 
 	"github.com/spf13/viper"
@@ -40,11 +41,21 @@ func initDB() (err error) {
 	if err != nil {
 		return err
 	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
 
+	// ⭐ 关键配置
+	sqlDB.SetMaxIdleConns(10)           // 最大空闲连接
+	sqlDB.SetMaxOpenConns(100)          // 最大连接数
+	sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大存活时间
+	sqlDB.SetConnMaxIdleTime(30 * time.Minute)
 	if err := db.AutoMigrate(&model.SimpleWeather{}); err != nil {
 		return err
 	}
 	return nil
+
 }
 
 func Getdb() *gorm.DB {

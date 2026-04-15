@@ -58,7 +58,7 @@ func RunJob(cfg *config.Config, db *gorm.DB) {
 		// 飞书
 		// ✅ 飞书
 		card := BuildFeishuCard(w)
-		if err := SendFeishu(cfg.Feishu.Webhook, card); err != nil {
+		if err := SafeSendFeishu(cfg.Feishu.Webhook, card); err != nil {
 			fmt.Println("飞书发送失败:", err)
 		}
 	}

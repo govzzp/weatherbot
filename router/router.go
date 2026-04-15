@@ -1,16 +1,17 @@
 package router
 
 import (
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
-    "weather-bot/handler"
+	"weather-bot/handler"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 
-    r := gin.Default()
+	r := gin.Default()
 
-    r.GET("/history", handler.GetHistory(db))
+	r.GET("/history", handler.GetHistory(db))
 
-    return r
+	return r
 }
