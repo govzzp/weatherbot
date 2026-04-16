@@ -12,17 +12,13 @@ func RunJob(cfg *config.Config, db *gorm.DB) {
 
 	for _, c := range cfg.Cities {
 
-		raw, err := GetWeatherRaw(c.Name, c.Lng, c.Lat, cfg.Caiyun.Token)
+		data, err := GetWeatherRaw(c.Name, c.Lng, c.Lat, cfg.Caiyun.Token)
 		if err != nil {
 			fmt.Println("API错误:", err)
 			continue
 		}
 
-		w, err := ParseWeather(c.Name, raw)
-		if err != nil {
-			fmt.Println("解析错误:", err)
-			continue
-		}
+		w := ParseWeather(c.Name, data)
 
 		err = db.Where("city = ? AND date = ?", w.City, w.Date).
 			Assign(model.SimpleWeather{

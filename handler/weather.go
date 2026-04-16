@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"net/http"
+	"fmt"
 	"weather-bot/model"
 
 	"github.com/gin-gonic/gin"
@@ -14,16 +14,26 @@ func GetHistory(db *gorm.DB) gin.HandlerFunc {
 		city := c.Query("city")
 
 		var list []model.SimpleWeather
+		db.Where("city = ?", city).
+			Order("date desc").
+			Limit(7).
+			Find(&list)
 
-		query := db.Order("date asc")
+		// ⭐ 不再直接返回 JSON，而是“结构化卡片数据”
+		var result []map[string]interface{}
 
-		// ✅ 有城市才加条件
-		if city != "" {
-			query = query.Where("city = ?", city)
+		for _, w := range list {
+			result = append(result, map[string]interface{}{
+				"date":    w.Date,
+				"weather": w.Sky,
+				"temp":    fmt.Sprintf("%.1f~%.1f℃", w.MinTemp, w.MaxTemp),
+				"aqi":     w.AQI,
+			})
 		}
 
-		query.Find(&list)
-
-		c.JSON(http.StatusOK, list)
+		c.JSON(200, gin.H{
+			"city": city,
+			"list": result,
+		})
 	}
 }

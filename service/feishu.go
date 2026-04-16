@@ -6,84 +6,9 @@ import (
 	"io"
 	"net/http"
 	"time"
-	"weather-bot/model"
 
 	"github.com/goccy/go-json"
 )
-
-func BuildFeishuCard(w model.SimpleWeather) map[string]interface{} {
-
-	header := fmt.Sprintf("🌤 %s · %s", w.City, w.Date)
-
-	mainInfo := fmt.Sprintf(
-		"🌡 **温度**：`%.1f℃ ~ %.1f℃`\n"+
-			"☁ **天气**：**%s**\n"+
-			"💧 **湿度**：%d%%\n"+
-			"🌬 **风速**：%.1f km/h",
-		w.MinTemp, w.MaxTemp, w.Sky, w.Humidity, w.WindSpeed,
-	)
-
-	extraInfo := fmt.Sprintf(
-		"🌈 **体感温度**：%.1f℃\n"+
-			"🌿 **空气质量**：%s (AQI %d)",
-		w.FeelingTemp, w.AQIDesc, w.AQI,
-	)
-
-	return map[string]interface{}{
-		"msg_type": "interactive",
-		"card": map[string]interface{}{
-			"header": map[string]interface{}{
-				"title": map[string]string{
-					"tag":     "plain_text",
-					"content": header,
-				},
-				"template": "blue",
-			},
-			"elements": []interface{}{
-
-				// 🌟 核心天气
-				map[string]interface{}{
-					"tag": "div",
-					"text": map[string]string{
-						"tag":     "lark_md",
-						"content": mainInfo,
-					},
-				},
-
-				map[string]interface{}{"tag": "hr"},
-
-				// 🌿 辅助信息
-				map[string]interface{}{
-					"tag": "div",
-					"text": map[string]string{
-						"tag":     "lark_md",
-						"content": extraInfo,
-					},
-				},
-
-				map[string]interface{}{"tag": "hr"},
-
-				// 📢 天气提示
-				map[string]interface{}{
-					"tag": "div",
-					"text": map[string]string{
-						"tag":     "lark_md",
-						"content": "📢 **天气提示**\n" + w.Alert,
-					},
-				},
-
-				// 🌧 降雨提醒
-				map[string]interface{}{
-					"tag": "div",
-					"text": map[string]string{
-						"tag":     "lark_md",
-						"content": "🌧 **降雨提醒**\n" + w.RainHint,
-					},
-				},
-			},
-		},
-	}
-}
 
 func SendFeishu(webhook string, card map[string]interface{}) error {
 
@@ -123,7 +48,7 @@ func SendFeishu(webhook string, card map[string]interface{}) error {
 	return nil
 }
 
-// 增加飞书的限流代码
+// SafeSendFeishu 增加飞书的限流代码
 func SafeSendFeishu(webhook string, card map[string]interface{}) error {
 	err := SendFeishu(webhook, card)
 	time.Sleep(1 * time.Second)
