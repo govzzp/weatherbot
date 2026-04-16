@@ -1,16 +1,31 @@
 package service
 
-type SimpleWeather struct {
-	City        string
-	Date        string
-	MinTemp     float64
-	MaxTemp     float64
-	Sky         string
-	Humidity    int
-	WindSpeed   float64
-	AQI         int
-	AQIDesc     string
-	FeelingTemp float64
-	Alert       string
-	RainHint    string
+type FeishuMessage struct {
+	MsgType string     `json:"msg_type"`
+	Card    FeishuCard `json:"card"`
+}
+
+type FeishuCard struct {
+	Config   CardConfig `json:"config"`
+	Header   CardHeader `json:"header"`
+	Elements []Element  `json:"elements"`
+}
+
+type CardConfig struct {
+	WideScreenMode bool `json:"wide_screen_mode"`
+}
+
+type CardHeader struct {
+	Title    TextModule `json:"title"`
+	Template string     `json:"template"`
+}
+
+type Element struct {
+	Tag  string      `json:"tag"`
+	Text *TextModule `json:"text,omitempty"`
+}
+
+type TextModule struct {
+	Tag     string `json:"tag"`
+	Content string `json:"content"`
 }

@@ -10,47 +10,77 @@ import (
 	"github.com/goccy/go-json"
 )
 
-func SendFeishu(webhook string, card map[string]interface{}) error {
+func SendFeishu(webhook string, msg FeishuMessage) error {
 
-	jsonData, err := json.Marshal(card)
+	jsonData, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 
-	resp, err := http.Post(webhook, "application/json", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
 
-		}
-	}(resp.Body)
+	req.Header.Set("Content-Type", "application/json")
 
-	body, _ := io.ReadAll(resp.Body)
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("飞书返回:", string(body))
 
-	// ✅ 检查 HTTP 状态码
+	// ❗ HTTP 层错误
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("飞书请求失败: status=%d", resp.StatusCode)
+		return fmt.Errorf("feishu http error: %d, body=%s", resp.StatusCode, string(body))
 	}
 
-	// ✅ 解析返回 JSON
-	var res map[string]interface{}
-	_ = json.Unmarshal(body, &res)
+	// ❗ 业务层错误
+	var res struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+	}
 
-	if code, ok := res["code"].(float64); ok && code != 0 {
-		return fmt.Errorf("飞书错误: %v", res)
+	if err := json.Unmarshal(body, &res); err != nil {
+		return fmt.Errorf("invalid feishu response: %s", string(body))
+	}
+
+	if res.Code != 0 {
+		return fmt.Errorf("feishu biz error: code=%d msg=%s", res.Code, res.Msg)
 	}
 
 	return nil
 }
 
+var feishuLimiter = time.NewTicker(1 * time.Second)
+var feishuCh = make(chan struct{}, 1)
+
+func init() {
+	go func() {
+		for range feishuLimiter.C {
+			select {
+			case feishuCh <- struct{}{}:
+			default:
+			}
+		}
+	}()
+}
+
 // SafeSendFeishu 增加飞书的限流代码
-func SafeSendFeishu(webhook string, card map[string]interface{}) error {
-	err := SendFeishu(webhook, card)
-	time.Sleep(1 * time.Second)
-	return err
+func SafeSendFeishu(webhook string, msg FeishuMessage) error {
+
+	<-feishuCh // 🚀 限流点
+
+	return SendFeishu(webhook, msg)
 }

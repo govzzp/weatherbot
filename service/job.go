@@ -31,7 +31,7 @@ func RunJob(cfg *config.Config, db *gorm.DB) {
 				AQIDesc:     w.AQIDesc,
 				FeelingTemp: w.FeelingTemp,
 				Alert:       w.Alert,
-				RainHint:    w.RainHint,
+				RainProb:    w.RainProb,
 			}).
 			FirstOrCreate(&model.SimpleWeather{
 				City:        w.City,
@@ -45,7 +45,7 @@ func RunJob(cfg *config.Config, db *gorm.DB) {
 				AQIDesc:     w.AQIDesc,
 				FeelingTemp: w.FeelingTemp,
 				Alert:       w.Alert,
-				RainHint:    w.RainHint,
+				RainProb:    w.RainProb,
 			}).Error
 
 		if err != nil {

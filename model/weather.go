@@ -9,14 +9,17 @@ type SimpleWeather struct {
 
 	Sky string
 
-	Humidity    int
-	WindSpeed   float64
-	AQI         int
-	AQIDesc     string
+	Humidity  int
+	WindSpeed float64
+
+	AQI     int
+	AQIDesc string
+
 	FeelingTemp float64
 
-	Alert    string
-	RainHint string
+	Alert string
+
+	RainProb float64
 }
 type CaiyunResponse struct {
 	Result struct {
