@@ -2,7 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"weather-bot/model"
+	"weather-bot/util"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -30,6 +32,9 @@ func GetHistory(db *gorm.DB) gin.HandlerFunc {
 				"aqi":     w.AQI,
 			})
 		}
+		util.Log.Info("history query",
+			zap.String("city", city),
+		)
 
 		c.JSON(200, gin.H{
 			"city": city,

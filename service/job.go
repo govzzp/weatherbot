@@ -1,20 +1,29 @@
 package service
 
 import (
-	"fmt"
+	"go.uber.org/zap"
 	"weather-bot/config"
 	"weather-bot/model"
+	"weather-bot/util"
 
 	"gorm.io/gorm"
 )
 
 func RunJob(cfg *config.Config, db *gorm.DB) {
 
+	util.Log.Info("job start")
 	for _, c := range cfg.Cities {
+		util.Log.Info("weather job start")
 
+		util.Log.Info("fetch weather",
+			zap.String("city", c.Name),
+		)
 		data, err := GetWeatherRaw(c.Name, c.Lng, c.Lat, cfg.Caiyun.Token)
 		if err != nil {
-			fmt.Println("API错误:", err)
+			util.Log.Error("weather api failed",
+				zap.String("city", c.Name),
+				zap.Error(err),
+			)
 			continue
 		}
 
@@ -49,13 +58,22 @@ func RunJob(cfg *config.Config, db *gorm.DB) {
 			}).Error
 
 		if err != nil {
-			fmt.Println("数据库错误:", err)
+			util.Log.Error("weather insert data failed", zap.Error(err))
 		}
+		util.Log.Info("db upsert success",
+			zap.String("city", w.City),
+			zap.String("date", w.Date),
+		)
 		// 飞书
 		// ✅ 飞书
 		card := BuildFeishuCard(w)
+		util.Log.Info("send feishu",
+			zap.String("city", w.City),
+		)
 		if err := SafeSendFeishu(cfg.Feishu.Webhook, card); err != nil {
-			fmt.Println("飞书发送失败:", err)
+			util.Log.Warn("feishu failed",
+				zap.Error(err),
+			)
 		}
 	}
 }

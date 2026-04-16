@@ -6,12 +6,13 @@ import (
 	"io"
 	"net/http"
 	"time"
+	"weather-bot/util"
 
 	"github.com/goccy/go-json"
 )
 
 func SendFeishu(webhook string, msg FeishuMessage) error {
-
+	util.Log.Info("feishu request sent")
 	jsonData, err := json.Marshal(msg)
 	if err != nil {
 		return err
