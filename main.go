@@ -1,12 +1,13 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	"weather-bot/config"
 	"weather-bot/dao"
 	"weather-bot/router"
 	"weather-bot/service"
 	"weather-bot/util"
+
+	"go.uber.org/zap"
 
 	"github.com/robfig/cron/v3"
 )
@@ -32,6 +33,7 @@ func main() {
 	go service.RunJob(cfg, db)
 
 	r := router.SetupRouter(db)
+
 	util.Log.Info("Starting web server", zap.String("port", ":14250"))
 	panic(r.Run(":14250"))
 }
