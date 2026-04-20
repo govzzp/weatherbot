@@ -17,7 +17,7 @@ func SendFeishu(webhook string, msg FeishuMessage) error {
 	if err != nil {
 		return err
 	}
-
+	time.Sleep(2 * time.Second)
 	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
