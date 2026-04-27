@@ -24,10 +24,13 @@ func FormatSky(s string) string {
 		"STORM_SNOW":    "❄️ 暴雪",
 
 		// 特殊天气
-		"FOG":  "🌫 雾",
-		"HAZE": "🌫 霾",
+		"FOG":           "🌫 雾",
+		"HAZE":          "🌫 霾",
+		"LIGHT_HAZE":    "🌫 轻度霾",
+		"MODERATE_HAZE": "🌫 中度霾",
+		"HEAVY_HAZE":    "🌫 重度霾",
 
-		// 沙尘类（你刚问的重点）
+		// 沙尘类
 		"DUST": "🌪 浮尘",
 		"SAND": "🌪 沙尘",
 

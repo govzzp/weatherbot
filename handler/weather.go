@@ -2,9 +2,10 @@ package handler
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"weather-bot/model"
 	"weather-bot/util"
+
+	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

@@ -7,9 +7,8 @@ import (
 	"weather-bot/service"
 	"weather-bot/util"
 
-	"go.uber.org/zap"
-
 	"github.com/robfig/cron/v3"
+	"go.uber.org/zap"
 )
 
 func main() {

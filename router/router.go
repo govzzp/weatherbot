@@ -14,5 +14,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 
 	r.GET("/history", handler.GetHistory(db))
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	return r
 }
